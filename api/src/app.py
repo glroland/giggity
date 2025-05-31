@@ -85,10 +85,10 @@ def private():
 @app.route("/contents/<repo_owner>/<repo_name>", methods=["GET", "POST"])
 @require_oauth("repo")
 def contents(repo_owner, repo_name):
-    oauth_token = request.headers.get('Bearer')
+    oauth_token = request.headers.get('Authorization').replace("Bearer ", "")
     print ("OAuth Token:", oauth_token)
 
-    url = GITHUB_API_BASE_URL + "repos/" + repo_owner + "/" + repo_name + "/contents"
+    url = GITHUB_API_BASE_URL + "repos/" + repo_owner + "/" + repo_name + "/contents/"
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/vnd.github+json",
@@ -97,7 +97,7 @@ def contents(repo_owner, repo_name):
     }
     data = {}
 
-    response = requests.post(url, headers=headers, data=json.dumps(data))
+    response = requests.get(url, headers=headers, data=json.dumps(data))
     response.raise_for_status()
 
     return jsonify(message=response.text)
