@@ -7,23 +7,15 @@ from authlib.oauth2.rfc6750 import BearerTokenValidator
 
 # constants
 GITHUB_API_BASE_URL = "https://api.github.com/"
-SCOPE = "user:email"
-
-# environment variables
-ENV_FLASK_SECRET_KEY = "FLASK_SECRET_KEY"
-
-# config
-flask_secret_key = os.environ[ENV_FLASK_SECRET_KEY]
+SCOPE_VALIDATE_TOKEN = "user:email"
+SCOPE_READ_REPO = "repo"
 
 # display config
 print ("Giggity API Server...")
 print ()
-print ("Flask Secret Key = '" + flask_secret_key + "'")
-print ()
 
 # flask app
 app = Flask(__name__)
-app.secret_key = flask_secret_key
 
 # Define a validator for bearer tokens
 class MyBearerTokenValidator(BearerTokenValidator):
@@ -83,7 +75,7 @@ def private():
     return jsonify(message=response)
 
 @app.route("/contents/<repo_owner>/<repo_name>", methods=["GET", "POST"])
-@require_oauth("repo")
+@require_oauth(SCOPE_READ_REPO)
 def contents(repo_owner, repo_name):
     oauth_token = request.headers.get('Authorization').replace("Bearer ", "")
     print ("OAuth Token:", oauth_token)
