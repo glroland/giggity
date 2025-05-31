@@ -100,7 +100,12 @@ def contents(repo_owner, repo_name):
     response = requests.get(url, headers=headers, data=json.dumps(data))
     response.raise_for_status()
 
-    return jsonify(message=response.text)
+    contents_response = json.loads(response.text)
+    contents = []
+    for file_obj in contents_response:
+        contents.append(file_obj["name"])
+
+    return jsonify(message=contents)
 
 
 if __name__ == "__main__":
