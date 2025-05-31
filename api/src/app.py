@@ -1,6 +1,7 @@
 import os
+import json
 import requests
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from authlib.integrations.flask_oauth2 import ResourceProtector
 from authlib.oauth2.rfc6750 import BearerTokenValidator
 
@@ -66,22 +67,41 @@ class MyBearerTokenValidator(BearerTokenValidator):
 require_oauth = ResourceProtector()
 require_oauth.register_token_validator(MyBearerTokenValidator())
 
-@app.route("/api/public")
+@app.route("/")
 def public():
     response = (
-        "Hello from a public endpoint! You don't need to be"
-        " authenticated to see this."
+        "Hello from a public endpoint!"
     )
     return jsonify(message=response)
 
-@app.route("/api/private")
+@app.route("/private")
 @require_oauth()
 def private():
     response = (
-    "Hello from a private endpoint! You need to be"
-    " authenticated to see this."
+        "Hello from a private endpoint! You need to be authenticated to see this."
     )
     return jsonify(message=response)
+
+@app.route("/contents/<repo_owner>/<repo_name>", methods=["GET", "POST"])
+@require_oauth("repo")
+def contents(repo_owner, repo_name):
+    oauth_token = request.headers.get('Bearer')
+    print ("OAuth Token:", oauth_token)
+
+    url = GITHUB_API_BASE_URL + "repos/" + repo_owner + "/" + repo_name + "/contents"
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "Authorization": f"Bearer {oauth_token}",
+    }
+    data = {}
+
+    response = requests.post(url, headers=headers, data=json.dumps(data))
+    response.raise_for_status()
+
+    return jsonify(message=response.text)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
