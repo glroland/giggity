@@ -12,6 +12,7 @@ CLIENT_ID = os.environ.get('CLIENT_ID')
 CLIENT_SECRET = os.environ.get('CLIENT_SECRET')
 REDIRECT_URI = os.environ.get('REDIRECT_URI')
 SCOPE = os.environ.get('SCOPE')
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 
 # Prompts
 SYSTEM_PROMPT = """
@@ -46,7 +47,7 @@ else:
     user_prompt = st.text_area("Prompt", DEFAULT_USER_PROMPT.strip(), height=68)
     if st.button("Ask AI"):
         # Invoke the LLM
-        openai.api_key = os.getenv("OPENAI_API_KEY")
+        openai.api_key = OPENAI_API_KEY
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": user_prompt}
