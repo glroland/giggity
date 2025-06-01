@@ -1,15 +1,7 @@
 import os
 import streamlit as st
 from streamlit_oauth import OAuth2Component
-
-ENV_TEST = "TEST"
-
-test = "I don't know who you are"
-if ENV_TEST in os.environ:
-    test = os.environ[ENV_TEST]
-    
-st.write ("Hello,  " + test + "!")
-
+import openai
 
 # Set environment variables
 AUTHORIZE_URL = os.environ.get('AUTHORIZE_URL')
@@ -20,6 +12,14 @@ CLIENT_ID = os.environ.get('CLIENT_ID')
 CLIENT_SECRET = os.environ.get('CLIENT_SECRET')
 REDIRECT_URI = os.environ.get('REDIRECT_URI')
 SCOPE = os.environ.get('SCOPE')
+
+# Prompts
+SYSTEM_PROMPT = """
+    You are a helpful agent who always provides with concise responses.
+"""
+DEFAULT_USER_PROMPT = """
+    What files are in the glroland/sudoku repository?
+"""
 
 # Create OAuth2Component instance
 oauth2 = OAuth2Component(CLIENT_ID, CLIENT_SECRET, AUTHORIZE_URL, TOKEN_URL, REFRESH_TOKEN_URL, REVOKE_TOKEN_URL)
@@ -41,3 +41,21 @@ else:
         token = oauth2.refresh_token(token)
         st.session_state.token = token
         st.rerun()
+
+    # Get the user prompt
+    user_prompt = st.text_area("Prompt", DEFAULT_USER_PROMPT.strip(), height=68)
+    if st.button("Ask AI"):
+        # Invoke the LLM
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+        messages = [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_prompt}
+        ]
+        response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=messages,
+        )
+
+        # Display the repsonse
+        response_content = response.choices[0].message.content
+        st.write("AI> ", response_content)
